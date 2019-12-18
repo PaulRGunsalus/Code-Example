@@ -45,20 +45,14 @@ ui<-fluidPage(
                        The Red Line displays the Median DPB value during this 
                       32 season span $10,600. This means owners on average 
                       paid about $10,600 for each base a player produced
-                       during this time period.")),
-    ## Conditional Panel for Team Leaders
-    conditionalPanel(condition = "input.tabs=='Teams'",
-                     selectInput(inputId="team", label="Select a Team", 
-                                 choices = "shiny.teams"))
+                       during this time period."))
     
                      ),
-  
   ## Main Panel and Tabs
   mainPanel(tabsetPanel(id="tabs",
                         tabPanel("MLB over Time", plotlyOutput("timeplot"),
                                  plotlyOutput("timeplot2")),
                         tabPanel("Careers", plotlyOutput("scatterplot")),
-                        tabPanel("Teams", verbatimTextOutput("teams")),
                         tabPanel("Evaluation",plotlyOutput("dotplot"),
                                  plotlyOutput("lineplot")))),
   ## Keeps Errors from Popping UP
@@ -84,7 +78,7 @@ server<-function(input, output, session){
                 selected = input$careervar2)
   })
   
-  ## Building plot for MLB over Time
+  ## Builind plot for MLB over Time
   output$timeplot<-renderPlotly({
     
     ## Selected Years
@@ -113,7 +107,7 @@ server<-function(input, output, session){
       
       
     }else{
-      ## Hover data selected show custom labels
+      ## I hover data selected show custom labels
       ## Other annotations are the same
       p1<-plot_ly(data=selectedMLByears,
                   x=~yearID, y=~get(input$yvar), color=I("#002D72"),
@@ -261,7 +255,7 @@ server<-function(input, output, session){
                 hoverinfo='none', showlegend=FALSE) %>% 
       group_by(playerID) %>% 
       add_lines() %>% 
-      ## Tracing lines of selected data
+      ## tracing lines of selected data
       filter(full.name %in% sel.data$full.name) %>% 
       add_lines(color=~full.name,
                 ## Custom labels

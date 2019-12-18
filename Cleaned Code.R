@@ -6,7 +6,6 @@ setwd("~ set own file path here")
 library(tidyverse)
 library(lubridate)
 library(plotly)
-## Read in desired data files
 appearances<-read.csv("Appearances.csv")
 batting<-read.csv("Batting.csv")
 salaries<-read.csv("Salaries.csv")
@@ -25,7 +24,6 @@ player.pos<-appearances %>%
   mutate(pos = substring(as.character(pos), 3, 4)) %>%
   arrange(yearID, teamID) %>% 
   select(yearID,teamID, playerID, pos)
-
 ## Assigned Position based on which they played most in a career
 career.app<-appearances %>% 
   group_by(playerID) %>% 
@@ -41,7 +39,6 @@ career.app<-appearances %>%
             G_cf=sum(G_cf),
             G_rf=sum(G_rf),
             G_dh=sum(G_dh))
-
 career.pos<-career.app %>% 
   group_by(playerID) %>% 
   gather(pos, G, G_p:G_rf, G_dh) %>% 
@@ -52,32 +49,24 @@ career.pos<-career.app %>%
 
 
 ## Assign names, Rookie Years, and Final Year
-## and selected variables of interest
 names<-people %>% 
   mutate(full.name=paste(nameFirst, nameLast, sep = " "),
          Rookie.Year=str_sub(debut,1,4),
          Final.Year=str_sub(finalGame,1,4)) %>% 
   select(playerID, full.name, Rookie.Year, Final.Year)
 
-## Get CPI (Consumer Price Index) to Adjust Salaries for inflation
+## Get CPI for and Adjust Salaries
 monthly_cpi <-read.table("http://research.stlouisfed.org/fred2/data/CPIAUCSL.txt",
              skip = 53, header = TRUE)
-## Stored cpi for later usages
 write.csv(monthly_cpi, "cpi.csv")
-## Reread in the monthly cpis
 monthly_cpi<-read.csv("cpi.csv")
-
-## Created a year variable
 monthly_cpi$cpi_year <- year(monthly_cpi$DATE)
-
-# Found yearly cpi
 yearly_cpi <- monthly_cpi %>% 
   group_by(cpi_year) %>% 
   summarize(cpi = mean(VALUE))
 yearly_cpi$adj_factor <- yearly_cpi$cpi/yearly_cpi$cpi[yearly_cpi$cpi_year == 2016]
 
 sal.cpi<-left_join(salaries, yearly_cpi, by=c("yearID"="cpi_year"))
-
 ## Get adjusted salaries to 2016
 salaries.adj<-sal.cpi %>% 
   mutate(adj2016=salary/adj_factor) %>% 
@@ -148,6 +137,7 @@ num.players<-batting %>%
 MLB.totals<-cbind(MLB.totals,num.teams[,2], num.players[,2])
 MLB.totals<-as.data.frame(MLB.totals)
 
+
 ## Join Season Stats, Names and Positions
 season.stats<-inner_join(season.player,career.pos, by="playerID")
 season.stats2<-left_join(as.data.frame(season.stats), names, by="playerID")
@@ -207,8 +197,8 @@ selected.players2<-inner_join(selected.players,temp, by="playerID")
 ## Median value for set metric for added graph
 Median<-median(selected.careers$Car.DPB)
 
-## Here ends the data cleaning
 
+## Here ends the data cleaning
 save(season.stats2, career.stats2, salaries.seasons,
      salaries.career,selected.careers, selected.players2,
      MLB.totals,Median, file="Baseball.rdata")
@@ -294,7 +284,6 @@ yvars<-c("total_H",
          "salary",
          "adj2016",
          "DPB")
-
 #named the variables for custom label associations
 names(yvars)<-c("Hits",
                 "Games",
@@ -326,7 +315,6 @@ names(yvars)<-c("Hits",
                 "Adjusted Salary",
                 "Dollars Per Base")
 
-## Saved all the data
 save(mlb.stat.choices,stat.choices,yvars,file="Shiny.rdata")
 load("baseball.rdata")
 
